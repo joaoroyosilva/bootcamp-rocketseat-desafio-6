@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
-import { WebView } from 'react-native';
+import { WebView } from 'react-native-webview';
 
 export default class Repository extends Component {
   static navigationOptions = ({ navigation }) => ({
