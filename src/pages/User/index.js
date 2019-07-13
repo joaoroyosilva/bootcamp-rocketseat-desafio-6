@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Button } from 'react-native';
 import PropTypes from 'prop-types';
+
 import api from '../../services/api';
 
 import {
@@ -33,6 +34,7 @@ export default class User extends Component {
     stars: [],
     page: 1,
     loading: true,
+    refreshing: false,
   };
 
   componentDidMount() {
@@ -47,14 +49,17 @@ export default class User extends Component {
   };
 
   refreshList = async () => {
-    await this.setState({ page: 1 });
-    this.load();
+    await this.setState({ page: 1, stars: [], refreshing: true });
+    await this.load();
+    this.setState({ refreshing: false });
   };
 
-  handleNavigateRepository = rep => {
+  handleNavigate = repository => {
     const { navigation } = this.props;
 
-    navigation.navigate('Repository', { rep });
+    console.log('navigate');
+
+    navigation.navigate('Repository', { repository });
   };
 
   async load() {
@@ -68,7 +73,7 @@ export default class User extends Component {
       const response = await api.get(`/users/${user.login}/starred`, {
         params: {
           page,
-          per_page: 5,
+          per_page: 30,
         },
       });
 
@@ -84,7 +89,7 @@ export default class User extends Component {
 
   render() {
     const { navigation } = this.props;
-    const { stars, loading } = this.state;
+    const { stars, loading, refreshing } = this.state;
 
     const user = navigation.getParam('user');
 
@@ -95,24 +100,27 @@ export default class User extends Component {
           <Name>{user.name}</Name>
           <Bio>{user.bio}</Bio>
         </Header>
-        {loading && <ActivityIndicator />}
-        <Stars
-          onRefresh={this.refreshList}
-          refreshing={loading}
-          onEndReachedThreshold={0.2}
-          onEndReached={this.loadMore}
-          data={stars}
-          keyExtractor={star => String(star.id)}
-          renderItem={({ item }) => (
-            <Starred onPress={() => this.handleNavigateRepository(item)}>
-              <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
-              <Info>
-                <Title>{item.name}</Title>
-                <Author>{item.owner.login}</Author>
-              </Info>
-            </Starred>
-          )}
-        />
+        {loading ? (
+          <ActivityIndicator />
+        ) : (
+          <Stars
+            onRefresh={this.refreshList}
+            refreshing={refreshing}
+            onEndReachedThreshold={0.1}
+            onEndReached={this.loadMore}
+            data={stars}
+            keyExtractor={star => String(star.id)}
+            renderItem={({ item }) => (
+              <Starred onPress={() => this.handleNavigate(item)}>
+                <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
+                <Info>
+                  <Title>{item.name}</Title>
+                  <Author>{item.owner.login}</Author>
+                </Info>
+              </Starred>
+            )}
+          />
+        )}
       </Container>
     );
   }

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 
 import { WebView } from 'react-native';
 
@@ -7,15 +8,15 @@ export default class Repository extends Component {
     title: navigation.getParam('repository').name,
   });
 
-  state = ({ navigation }) => ({
-    repository: navigation.getParam('repository').name,
-  });
+  static propTypes = {
+    navigation: PropTypes.shape({
+      getParam: PropTypes.func,
+    }).isRequired,
+  };
 
   render() {
-    const { repository } = this.state;
-
-    return (
-      <WebView source={{ uri: repository.html_url }} style={{ flex: 1 }} />
-    );
+    const { navigation } = this.props;
+    const uri = navigation.getParam('repository').html_url;
+    return <WebView source={{ uri }} style={{ flex: 1 }} />;
   }
 }
